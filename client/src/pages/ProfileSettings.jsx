@@ -4,6 +4,8 @@ import api from '../api/axios';
 const ProfileSettings = () => {
   const [form, setForm] = useState({ username: '', email: '' });
   const [loading, setLoading] = useState(true);
+  const [avatarPreview, setAvatarPreview] = useState('');
+  const [avatarFile, setAvatarFile] = useState(null);
   const [passwords, setPasswords] = useState({
     oldPassword: '',
     newPassword: '',
@@ -18,6 +20,9 @@ const ProfileSettings = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setForm({ username: res.data.username, email: res.data.email });
+        if (res.data.avatar) {
+          setAvatarPreview(res.data.avatar);
+        }
       } catch (err) {
         console.error('Profile fetch failed:', err);
       } finally {
@@ -32,13 +37,32 @@ const ProfileSettings = () => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setAvatarFile(file);
+      setAvatarPreview(URL.createObjectURL(file));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      await api.put('/users/me/profile', form, {
-        headers: { Authorization: `Bearer ${token}` },
+      const formData = new FormData();
+      formData.append('username', form.username);
+      formData.append('email', form.email);
+      if (avatarFile) {
+        formData.append('avatar', avatarFile);
+      }
+
+      await api.put('/users/me/profile', formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
       });
+
       alert('Profile updated!');
     } catch (err) {
       console.error('Profile update failed:', err);
@@ -79,8 +103,24 @@ const ProfileSettings = () => {
     <div className="ml-64 max-w-xl mx-auto mt-12 bg-white p-6 rounded shadow">
       <h2 className="text-2xl font-bold mb-6">Profile Settings</h2>
 
-      {/* Update Username & Email */}
+      {/* Update Username, Email, Avatar */}
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <label className="block font-semibold">Avatar</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleAvatarChange}
+            className="w-full"
+          />
+          {avatarPreview && (
+            <img
+              src={avatarPreview}
+              alt="Avatar Preview"
+              className="h-24 w-24 rounded-full object-cover mt-2"
+            />
+          )}
+        </div>
         <input
           name="username"
           value={form.username}
@@ -111,9 +151,7 @@ const ProfileSettings = () => {
           type="password"
           name="oldPassword"
           value={passwords.oldPassword}
-          onChange={(e) =>
-            setPasswords((prev) => ({ ...prev, oldPassword: e.target.value }))
-          }
+          onChange={(e) => setPasswords((prev) => ({ ...prev, oldPassword: e.target.value }))}
           className="w-full border px-3 py-2 rounded"
           placeholder="Current password"
         />
@@ -121,9 +159,7 @@ const ProfileSettings = () => {
           type="password"
           name="newPassword"
           value={passwords.newPassword}
-          onChange={(e) =>
-            setPasswords((prev) => ({ ...prev, newPassword: e.target.value }))
-          }
+          onChange={(e) => setPasswords((prev) => ({ ...prev, newPassword: e.target.value }))}
           className="w-full border px-3 py-2 rounded"
           placeholder="New password"
         />
@@ -131,9 +167,7 @@ const ProfileSettings = () => {
           type="password"
           name="confirmPassword"
           value={passwords.confirmPassword}
-          onChange={(e) =>
-            setPasswords((prev) => ({ ...prev, confirmPassword: e.target.value }))
-          }
+          onChange={(e) => setPasswords((prev) => ({ ...prev, confirmPassword: e.target.value }))}
           className="w-full border px-3 py-2 rounded"
           placeholder="Confirm new password"
         />

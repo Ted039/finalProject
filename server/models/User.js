@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
     lowercase: true,
+    trim: true,
   },
   password: {
     type: String,
@@ -19,6 +20,11 @@ const userSchema = new mongoose.Schema({
   skills: {
     type: [String],
     default: [],
+  },
+  avatar: {
+    type: String,       // stores URL or filename
+    default: '',        // blank by default
+    trim: true,
   },
 }, { timestamps: true });
 

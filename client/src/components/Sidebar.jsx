@@ -11,7 +11,7 @@ const Sidebar = () => {
 
   return (
     <aside className="w-64 h-screen bg-gray-800 text-white p-6 fixed top-0 left-0">
-      <h2 className="text-xl font-bold mb-6">SkillSwap 🚀</h2>
+      <h2 className="text-xl font-bold mb-6">SkillSwap </h2>
       <nav className="space-y-4">
         {navLinks.map(({ path, label }) => (
           <Link
