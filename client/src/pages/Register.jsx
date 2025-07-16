@@ -1,11 +1,9 @@
-import { useState, useContext } from 'react';
+import { useState } from 'react';
 import api from '../api/axios';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
 
-const Login = () => {
-  const { login } = useContext(AuthContext);
-  const [form, setForm] = useState({ email: '', password: '' });
+const Register = () => {
+  const [form, setForm] = useState({ username: '', email: '', password: '' });
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -15,30 +13,31 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await api.post('/auth/login', form);
-      login(res.data);
-      navigate('/dashboard');
+      await api.post('/auth/register', form);
+      navigate('/login');
     } catch (err) {
-      alert(err.response?.data.message || 'Login failed');
+      alert(err.response?.data.message || 'Registration failed');
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="max-w-sm mx-auto mt-20 p-6 bg-white shadow-md rounded-md space-y-4">
-        <h2 className="text-xl font-semibold text-center">Login</h2>
+        <h2 className="text-xl font-semibold text-center">Register</h2>
+        <input name="username" placeholder="Username"
+            className="w-full border px-3 py-2 rounded" onChange={handleChange} />
         <input name="email" placeholder="Email"
             className="w-full border px-3 py-2 rounded" onChange={handleChange} />
         <input name="password" type="password" placeholder="Password"
             className="w-full border px-3 py-2 rounded" onChange={handleChange} />
         <button type="submit"
-            className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
-            Sign In
+            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+            Create Account
         </button>
 
         <p className="text-center mt-4 text-sm">
-            Don't have an account?{' '}
-            <a href="/register" className="text-blue-600 hover:underline">
-                Register here
+            Already registered?{' '}
+            <a href="/" className="text-blue-600 hover:underline">
+                Login here
             </a>
         </p>
 
@@ -47,4 +46,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;

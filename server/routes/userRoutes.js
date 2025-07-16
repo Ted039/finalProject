@@ -1,7 +1,10 @@
-import express from 'express'
-import { register } from '../controllers/userController.js'
+// routes/userRoutes.js
+import express from 'express';
+import { getUserProfile, addSkillToUser } from '../controllers/userController.js';
+import { authenticateToken } from '../middleware/authMiddleware.js';
 
-const router = express.Router()
-router.post('/register', register)
+const router = express.Router();
 
-export default router
+router.get('/me', authenticateToken, getUserProfile, addSkillToUser);
+
+export default router;
