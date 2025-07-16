@@ -18,7 +18,7 @@ const Dashboard = () => {
         });
         setProfile(res.data);
       } catch (err) {
-        console.error('Profile error:', err);
+        console.error('Profile fetch error:', err);
       } finally {
         setLoading(false);
       }
@@ -46,6 +46,18 @@ const Dashboard = () => {
     }
   };
 
+  const handleRemoveSkill = async (skillToRemove) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await api.put('/users/me/skills/remove', { skill: skillToRemove }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setProfile(res.data);
+    } catch (err) {
+      console.error('Remove skill error:', err);
+    }
+  };
+
   if (loading) return <div className="text-center mt-10">Loading your dashboard...</div>;
   if (!profile) return <div className="text-center mt-10">Failed to load profile.</div>;
 
@@ -64,11 +76,24 @@ const Dashboard = () => {
       <p className="text-gray-600 mb-4">Email: {profile.email}</p>
 
       <h2 className="text-lg font-semibold mb-2">Your Skills</h2>
-      <ul className="list-disc list-inside mb-4">
+      <ul className="space-y-2 mb-6">
         {profile.skills.length > 0 ? (
-          profile.skills.map((skill, i) => <li key={i}>{skill}</li>)
+          profile.skills.map((skill, i) => (
+            <li
+              key={i}
+              className="flex justify-between items-center bg-gray-100 px-4 py-2 rounded"
+            >
+              <span>{skill}</span>
+              <button
+                onClick={() => handleRemoveSkill(skill)}
+                className="text-sm text-red-600 hover:underline"
+              >
+                Remove
+              </button>
+            </li>
+          ))
         ) : (
-          <li>No skills listed yet</li>
+          <li className="text-gray-500">No skills listed yet</li>
         )}
       </ul>
 
