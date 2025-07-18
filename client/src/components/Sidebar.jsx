@@ -6,7 +6,8 @@ const Sidebar = () => {
   const navLinks = [
     { path: '/dashboard', label: 'Dashboard' },
     { path: '/profile', label: 'Profile Settings' },
-    { path: '/', label: 'Logout' }, // optional: can trigger logout function
+    { path: '/discover', label: 'Discover' },
+    { path: '/', label: 'Logout' }, 
   ];
 
   return (

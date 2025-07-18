@@ -68,9 +68,14 @@ const Dashboard = () => {
         {profile.avatar ? (
             <img
                 src={profile.avatar}
-                alt="User Avatar"
-                className="w-20 h-20 rounded-full object-cover mb-4"
-            />
+                alt="Avatar"
+                className={`w-20 h-20 rounded-full object-cover ${
+                    skillLevel === 'advanced' ? 'border-4 border-yellow-400' :
+                    skillLevel === 'intermediate' ? 'border-2 border-blue-500' :
+                    'border border-gray-300'
+                }`}
+                />
+
             ) : (
             <div className="w-20 h-20 mb-4 bg-gray-300 text-gray-700 rounded-full flex items-center justify-center text-xl font-semibold">
                 {profile.username

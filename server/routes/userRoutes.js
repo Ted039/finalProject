@@ -1,6 +1,6 @@
 // routes/userRoutes.js
 import express from 'express';
-import { getUserProfile, addSkillToUser, removeSkillFromUser , updateUserProfile, updatePassword} from '../controllers/userController.js';
+import { getUserProfile, addSkillToUser, removeSkillFromUser , updateUserProfile, updatePassword, getAllOtherUsers} from '../controllers/userController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 import multer from 'multer';
 
@@ -18,6 +18,8 @@ router.put('/me/skills/remove', authenticateToken, removeSkillFromUser);
 router.put('/me/profile', authenticateToken, updateUserProfile);
 router.put('/me/password', authenticateToken, updatePassword);
 router.put('/me/profile', authenticateToken, upload.single('avatar'), updateUserProfile);
+router.get('/others', authenticateToken, getAllOtherUsers);
+
 
 
 

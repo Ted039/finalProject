@@ -1,5 +1,7 @@
 import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
+import { skillCategoryMap } from '../utils/skillCategories.js';
+
 
 export const getUserProfile = async (req, res) => {
   try {
@@ -88,3 +90,25 @@ export const updatePassword = async (req, res) => {
     res.status(500).json({ message: 'Password update failed' });
   }
 };
+
+
+export const getAllOtherUsers = async (req, res) => {
+  try {
+    const users = await User.find({ _id: { $ne: req.user._id } }).select('username skills avatar');
+
+    const enrichedUsers = users.map((user) => {
+      const categories = new Set();
+      user.skills.forEach((skill) => {
+        const category = skillCategoryMap[skill.toLowerCase()];
+        if (category) categories.add(category);
+      });
+      return { ...user.toObject(), categories: Array.from(categories) };
+    });
+
+    res.json(enrichedUsers);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to retrieve users' });
+  }
+};
+
+
