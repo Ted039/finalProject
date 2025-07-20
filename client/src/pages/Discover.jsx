@@ -1,77 +1,93 @@
-import { useEffect, useState } from 'react';
-import api from '../api/axios';
-import SwapRequestForm from '../components/SwapRequestForm.jsx';
+import { useEffect, useState } from 'react'
+import { toast } from 'react-hot-toast'
+import api from '../api/axios'
+import SwapRequestForm from '../components/SwapRequestForm.jsx'
+import { useNavigate } from 'react-router-dom'
 
 const Discover = () => {
-  const [users, setUsers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [error, setError] = useState('');
+  const [users, setUsers] = useState([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState('')
+  const [error, setError] = useState('')
+  const navigate = useNavigate()
 
-  const allCategories = ['Design', 'Tech', 'Communication', 'Fitness', 'Business'];
+  const allCategories = ['Design', 'Tech', 'Communication', 'Fitness', 'Business']
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('token')
         const res = await api.get('/users/others', {
           headers: { Authorization: `Bearer ${token}` },
-        });
-        setUsers(res.data);
+        })
+        setUsers(res.data)
       } catch (err) {
-        console.error('Failed to fetch users:', err);
-        setError('Could not load members. Please try again.');
+        console.error('Failed to fetch users:', err)
+        setError('Could not load members. Please try again.')
       }
-    };
-    fetchUsers();
-  }, []);
+    }
+    fetchUsers()
+  }, [])
 
   const filteredUsers = users.filter((user) =>
     user.skills?.join(',').toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.username?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  )
 
   const categoryFiltered = selectedCategory
     ? filteredUsers.filter((user) => user.categories?.includes(selectedCategory))
-    : filteredUsers;
+    : filteredUsers
 
   return (
-    <div className="ml-64 max-w-5xl mx-auto mt-12 bg-white p-6 rounded shadow">
-      <h2 className="text-2xl font-bold mb-6">Discover Members</h2>
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+      {/* Navbar */}
+      <nav className="bg-gray-800 text-white px-6 py-4 flex justify-between items-center shadow">
+        <h1 className="text-xl font-bold"></h1>
+        <div className="space-x-4">
+          <button onClick={() => navigate('/dashboard')} className="hover:underline">Dashboard</button>
+          <button onClick={() => navigate('/discover')} className="hover:underline">Discover</button>
+          <button onClick={() => navigate('/requests')} className="hover:underline">Requests</button>
+          <button onClick={() => navigate('/profile')} className="hover:underline">Profile</button>
+        </div>
+      </nav>
 
-      {/* 🔍 Search Bar */}
-      <input
-        type="text"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        placeholder="Search skills or usernames..."
-        className="w-full mb-4 px-4 py-2 border rounded"
-      />
+      {/* Main Content */}
+      <div className="max-w-6xl mx-auto px-6 py-10">
+        <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-white">Discover Members</h2>
 
-      {/* 🎯 Category Filters */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        {allCategories.map((cat) => (
-          <button
-            key={cat}
-            className={`px-3 py-1 rounded ${
-              selectedCategory === cat ? 'bg-blue-600 text-white' : 'bg-gray-200'
-            }`}
-            onClick={() => setSelectedCategory(selectedCategory === cat ? '' : cat)}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
+        {/* Search & Filters */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search skills or usernames..."
+            className="flex-1 px-4 py-2 border rounded dark:bg-gray-800 dark:text-white"
+          />
+          <div className="flex gap-2 flex-wrap">
+            {allCategories.map((cat) => (
+              <button
+                key={cat}
+                className={`px-3 py-1 rounded-full ${
+                  selectedCategory === cat ? 'bg-blue-600 text-white' : 'bg-gray-300 dark:bg-gray-700 dark:text-white'
+                }`}
+                onClick={() => setSelectedCategory(selectedCategory === cat ? '' : cat)}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
 
-      {/* ⚠️ Error Handling */}
-      {error ? (
-        <p className="text-red-600">{error}</p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Error */}
+        {error && <p className="text-red-600 mb-4">{error}</p>}
+
+        {/* User Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {categoryFiltered.length > 0 ? (
             categoryFiltered.map((user) => (
-              <div key={user._id} className="border rounded p-4 shadow-sm">
-                <div className="flex items-center gap-4 mb-2">
+              <div key={user._id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-5 hover:shadow-lg transition">
+                <div className="flex items-center gap-4 mb-4">
                   {user.avatar ? (
                     <img
                       src={user.avatar}
@@ -79,18 +95,13 @@ const Discover = () => {
                       className="h-16 w-16 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="h-16 w-16 rounded-full bg-gray-300 flex items-center justify-center font-bold text-xl">
-                      {user.username
-                        .split(' ')
-                        .map((n) => n[0])
-                        .join('')
-                        .slice(0, 2)
-                        .toUpperCase()}
+                    <div className="h-16 w-16 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center font-bold text-xl text-gray-800 dark:text-white">
+                      {user.username.slice(0, 2).toUpperCase()}
                     </div>
                   )}
                   <div>
-                    <h3 className="font-semibold">{user.username}</h3>
-                    <p className="text-sm text-gray-600">
+                    <h3 className="text-lg font-semibold dark:text-white">{user.username}</h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
                       Skills: {user.skills?.join(', ') || 'None listed'}
                     </p>
                     <p className="text-xs text-gray-500">
@@ -99,21 +110,21 @@ const Discover = () => {
                   </div>
                 </div>
 
-                {/* 🔁 Swap Request Form */}
+                {/* Swap Form */}
                 <SwapRequestForm
                   toUserId={user._id}
                   toUsername={user.username}
-                  onSuccess={() => console.log('Swap sent')}
+                  onSuccess={() => toast.success('Swap request sent')}
                 />
               </div>
             ))
           ) : (
-            <p className="text-gray-500">No matching members found.</p>
+            <p className="text-gray-500 dark:text-gray-400">No matching members found.</p>
           )}
         </div>
-      )}
+      </div>
     </div>
-  );
-};
+  )
+}
 
-export default Discover;
+export default Discover
