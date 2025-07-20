@@ -55,7 +55,7 @@ export const updateUserProfile = async (req, res) => {
 
     const updatedFields = { username, email };
 
-    // ✅ Include avatar if file was uploaded
+    // Include avatar if file was uploaded
     if (req.file) {
       updatedFields.avatar = `/uploads/${req.file.filename}`;
     }
@@ -111,4 +111,13 @@ export const getAllOtherUsers = async (req, res) => {
   }
 };
 
+
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find().select('-password')
+    res.json(users)
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch users' })
+  }
+}
 

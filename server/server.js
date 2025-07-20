@@ -12,10 +12,18 @@ dotenv.config();
 const app = express();
 
 connectDB();
+
+
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://skillswap-omega-eight.vercel.app'
+]
+
 app.use(cors({
-  origin: 'http://localhost:5173', 
-  credentials: true               
-}));
+  origin: allowedOrigins,
+  credentials: true
+}))
+
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
