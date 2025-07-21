@@ -7,7 +7,7 @@ const swapRequestSchema = new mongoose.Schema({
   requestedSkill: { type: String, required: true },
   message: { type: String }, 
   date: { type: Date, required: function () {
-    return this.isNew // ✅ only required when creating a new request
+    return this.isNew //  only required when creating a new request
   }}, 
   status: {
     type: String,

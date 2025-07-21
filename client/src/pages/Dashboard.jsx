@@ -124,7 +124,6 @@ const Dashboard = () => {
         <div className="mb-6">
           {pendingRequests > 0 ? (
             <div className="flex items-center gap-2 text-sm text-red-600">
-              🔔 You have {pendingRequests} pending swap request
               {pendingRequests > 1 ? 's' : ''}. <button
                 onClick={() => navigate('/requests')}
                 className="underline text-blue-600 hover:text-blue-800"

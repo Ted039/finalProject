@@ -14,7 +14,7 @@ const SuggestedMatches = ({ skills = [], currentUserId }) => {
         })
 
         const suggestions = res.data
-          .filter((user) => user._id !== currentUserId) // ✅ exclude self
+          .filter((user) => user._id !== currentUserId) // exclude self
           .filter((user) =>
             user.skills?.some((skill) => skills.includes(skill))
           )

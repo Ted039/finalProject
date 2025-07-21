@@ -3,6 +3,8 @@ import { toast } from 'react-hot-toast'
 import api from '../api/axios'
 import SwapRequestForm from '../components/SwapRequestForm.jsx'
 import { useNavigate } from 'react-router-dom'
+import MemberCard from '../components/MemberCard.jsx'
+
 
 const Discover = () => {
   const [users, setUsers] = useState([])
@@ -88,35 +90,39 @@ const Discover = () => {
             categoryFiltered.map((user) => (
               <div key={user._id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-5 hover:shadow-lg transition">
                 <div className="flex items-center gap-4 mb-4">
-                  {user.avatar ? (
+                    {user.avatar ? (
                     <img
-                      src={user.avatar}
-                      alt="Avatar"
-                      className="h-16 w-16 rounded-full object-cover"
+                        src={user.avatar}
+                        alt="Avatar"
+                        className="h-16 w-16 rounded-full object-cover"
                     />
-                  ) : (
+                    ) : (
                     <div className="h-16 w-16 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center font-bold text-xl text-gray-800 dark:text-white">
-                      {user.username.slice(0, 2).toUpperCase()}
+                        {user.username.slice(0, 2).toUpperCase()}
                     </div>
-                  )}
-                  <div>
+                    )}
+                    <div>
                     <h3 className="text-lg font-semibold dark:text-white">{user.username}</h3>
                     <p className="text-sm text-gray-600 dark:text-gray-300">
-                      Skills: {user.skills?.join(', ') || 'None listed'}
+                        Skills: {user.skills?.join(', ') || 'None listed'}
                     </p>
                     <p className="text-xs text-gray-500">
-                      Categories: {user.categories?.join(', ') || 'Uncategorized'}
+                        Categories: {user.categories?.join(', ') || 'Uncategorized'}
                     </p>
-                  </div>
+                    </div>
                 </div>
 
-                {/* Swap Form */}
+                {/* 🔁 Swap Form */}
                 <SwapRequestForm
-                  toUserId={user._id}
-                  toUsername={user.username}
-                  onSuccess={() => toast.success('Swap request sent')}
+                    toUserId={user._id}
+                    toUsername={user.username}
+                    onSuccess={() => toast.success('Swap request sent')}
                 />
-              </div>
+
+                {/* DM Button */}
+                <MemberCard receiver={user} />  
+            </div>
+
             ))
           ) : (
             <p className="text-gray-500 dark:text-gray-400">No matching members found.</p>

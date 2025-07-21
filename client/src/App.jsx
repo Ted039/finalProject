@@ -4,20 +4,20 @@ import {
   Route,
   useLocation,
 } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import Sidebar from './components/Sidebar.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
-import { Toaster } from 'react-hot-toast';
 
 // Pages
-import Login from './pages/Login.jsx';
-import Register from './pages/Register.jsx';
 import Dashboard from './pages/Dashboard.jsx';
-import ProfileSettings from './pages/ProfileSettings.jsx';
 import Discover from './pages/Discover.jsx';
-import SwapRequest from './pages/swapRequests.jsx';
+import Login from './pages/Login.jsx';
+import Messages from './pages/Messages.jsx';
+import ProfileSettings from './pages/ProfileSettings.jsx';
+import Register from './pages/Register.jsx';
 import Requests from './pages/Request.jsx';
-
-
+import SwapRequest from './pages/swapRequests.jsx';
+import DirectMessage from './pages/DirectMessage.jsx'; // ✅ Newly added
 
 const AppLayout = () => {
   const { pathname } = useLocation();
@@ -25,9 +25,9 @@ const AppLayout = () => {
 
   return (
     <div className="bg-white text-black dark:bg-gray-900 dark:text-white min-h-screen transition-colors duration-300">
-      <Toaster position="top-right" /> {/* ✅ Global Toast */}
+      <Toaster position="top-right" />
       <div className="flex min-h-screen">
-        {!hideSidebar && <Sidebar />} {/* ✅ Conditional Sidebar */}
+        {!hideSidebar && <Sidebar />}
         <main className={`${!hideSidebar ? 'ml-64' : ''} flex-1 p-6`}>
           <Routes>
             {/* Public Routes */}
@@ -45,18 +45,34 @@ const AppLayout = () => {
               }
             />
             <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <ProfileSettings />
-                </ProtectedRoute>
-              }
-            />
-            <Route
               path="/discover"
               element={
                 <ProtectedRoute>
                   <Discover />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/messages"
+              element={
+                <ProtectedRoute>
+                  <Messages />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dm/:receiverId"
+              element={
+                <ProtectedRoute>
+                  <DirectMessage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfileSettings />
                 </ProtectedRoute>
               }
             />
@@ -68,6 +84,8 @@ const AppLayout = () => {
                 </ProtectedRoute>
               }
             />
+            {/* 🔧 Optional: Add missing route */}
+            {/* <Route path="/swaps" element={<SwapRequest />} /> */}
           </Routes>
         </main>
       </div>

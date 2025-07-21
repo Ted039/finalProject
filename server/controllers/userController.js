@@ -5,7 +5,7 @@ import { skillCategoryMap } from '../utils/skillCategories.js';
 
 export const getUserProfile = async (req, res) => {
   try {
-    const user = req.user; // added by authMiddleware
+    const user = req.user; 
     res.status(200).json({
       _id: user._id,
       username: user.username,
