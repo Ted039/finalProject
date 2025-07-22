@@ -17,7 +17,7 @@ import ProfileSettings from './pages/ProfileSettings.jsx';
 import Register from './pages/Register.jsx';
 import Requests from './pages/Request.jsx';
 import SwapRequest from './pages/swapRequests.jsx';
-import DirectMessage from './pages/DirectMessage.jsx'; // ✅ Newly added
+import DirectMessage from './pages/DirectMessage.jsx'; 
 
 const AppLayout = () => {
   const { pathname } = useLocation();
