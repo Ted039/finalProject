@@ -72,7 +72,9 @@ const hideSidebar = isAuthPage || isSettingsPage
               path="/dm/:receiverId"
               element={
                 <ProtectedRoute>
-                  <DirectMessage />
+                  <MainLayout>
+                    <DirectMessage />
+                  </MainLayout>
                 </ProtectedRoute>
               }
             />
