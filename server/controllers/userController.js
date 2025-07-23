@@ -116,3 +116,36 @@ export const getAllUsers = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch users' })
   }
 }
+
+export const completeSwap = async (req, res) => {
+  const { receiverId, skillOffered, skillRequested } = req.body
+  const userId = req.user._id
+
+  const date = new Date()
+
+  const initiator = await User.findById(userId)
+  const receiver = await User.findById(receiverId)
+
+  const swapRecord = {
+    partner: receiverId,
+    skillOffered,
+    skillReceived: skillRequested,
+    status: 'completed',
+    date,
+  }
+
+  initiator.swapHistory.push(swapRecord)
+
+  receiver.swapHistory.push({
+    partner: userId,
+    skillOffered: skillRequested,
+    skillReceived: skillOffered,
+    status: 'completed',
+    date,
+  })
+
+  await initiator.save()
+  await receiver.save()
+
+  res.json({ message: 'Swap marked as completed' })
+}

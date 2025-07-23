@@ -1,28 +1,29 @@
-import { useState } from 'react';
-import { toast } from 'react-hot-toast';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import api from '../api/axios';
+import { useState } from 'react'
+import { toast } from 'react-hot-toast'
+import DatePicker from 'react-datepicker'
+import 'react-datepicker/dist/react-datepicker.css'
+import api from '../api/axios'
 
-const SwapRequest = ({ targetUser, skills = ['Web Development', 'Python', 'UI Design'], onRequestSent }) => {
-  const [selectedSkill, setSelectedSkill] = useState('');
-  const [message, setMessage] = useState('');
-  const [swapTime, setSwapTime] = useState(null);
+const SwapRequest = ({ targetUser, skills = [], onRequestSent }) => {
+  const [selectedSkill, setSelectedSkill] = useState('')
+  const [message, setMessage] = useState('')
+  const [swapTime, setSwapTime] = useState(null)
+  const [isCompleted, setIsCompleted] = useState(false)
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
     if (!selectedSkill || !message || !swapTime) {
-      toast.error('Please fill out all fields');
-      return;
+      toast.error('Please fill out all fields')
+      return
     }
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token')
     const payload = {
       toUser: targetUser?._id,
       offeredSkill: selectedSkill,
       message,
       date: swapTime,
-    };
+    }
 
     toast.promise(
       api.post('/api/swaps/request', payload, {
@@ -34,12 +35,39 @@ const SwapRequest = ({ targetUser, skills = ['Web Development', 'Python', 'UI De
         error: 'Failed to send request',
       }
     ).then(() => {
-      setSelectedSkill('');
-      setMessage('');
-      setSwapTime(null);
-      onRequestSent?.(); // optional callback
-    });
-  };
+      setSelectedSkill('')
+      setMessage('')
+      setSwapTime(null)
+      onRequestSent?.()
+    })
+  }
+
+  const completeSwap = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const skillRequested =
+        message.toLowerCase().includes('learn') || message.toLowerCase().includes('want')
+          ? selectedSkill
+          : 'unspecified'
+
+      await api.post(
+        '/users/swap/complete',
+        {
+          receiverId: targetUser?._id,
+          skillOffered: selectedSkill,
+          skillRequested,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+
+      toast.success(' Swap completed and logged!')
+      setIsCompleted(true)
+    } catch (err) {
+      toast.error('Failed to complete swap')
+    }
+  }
 
   return (
     <div className="max-w-xl mx-auto mt-10 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
@@ -50,7 +78,9 @@ const SwapRequest = ({ targetUser, skills = ['Web Development', 'Python', 'UI De
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Skill Selection */}
         <div>
-          <label htmlFor="skill" className="block mb-2 text-gray-700 dark:text-gray-200">Choose Skill</label>
+          <label htmlFor="skill" className="block mb-2 text-gray-700 dark:text-gray-200">
+            Choose Skill
+          </label>
           <select
             id="skill"
             name="skill"
@@ -60,14 +90,18 @@ const SwapRequest = ({ targetUser, skills = ['Web Development', 'Python', 'UI De
           >
             <option value="">Select a skill</option>
             {skills.map((skill, idx) => (
-              <option key={idx} value={skill}>{skill}</option>
+              <option key={idx} value={skill}>
+                {skill}
+              </option>
             ))}
           </select>
         </div>
 
         {/* Message */}
         <div>
-          <label htmlFor="message" className="block mb-2 text-gray-700 dark:text-gray-200">Message</label>
+          <label htmlFor="message" className="block mb-2 text-gray-700 dark:text-gray-200">
+            Message
+          </label>
           <textarea
             id="message"
             name="message"
@@ -81,7 +115,9 @@ const SwapRequest = ({ targetUser, skills = ['Web Development', 'Python', 'UI De
 
         {/* Date Picker */}
         <div>
-          <label htmlFor="swapTime" className="block mb-2 text-gray-700 dark:text-gray-200">Preferred Swap Time</label>
+          <label htmlFor="swapTime" className="block mb-2 text-gray-700 dark:text-gray-200">
+            Preferred Swap Time
+          </label>
           <DatePicker
             id="swapTime"
             selected={swapTime}
@@ -102,9 +138,26 @@ const SwapRequest = ({ targetUser, skills = ['Web Development', 'Python', 'UI De
         >
           Send Request
         </button>
+
+        {/* Swap Completion */}
+        {!isCompleted && (
+          <button
+            type="button"
+            onClick={completeSwap}
+            className="mt-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded"
+          >
+            Mark as Completed
+          </button>
+        )}
+
+        {isCompleted && (
+          <p className="mt-4 text-green-600 dark:text-green-400 text-sm">
+            Swap has been marked as complete and added to history.
+          </p>
+        )}
       </form>
     </div>
-  );
-};
+  )
+}
 
-export default SwapRequest;
+export default SwapRequest

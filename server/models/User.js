@@ -30,6 +30,24 @@ const userSchema = new mongoose.Schema({
     type: [String],
     default: [],
   },
+  endorsements: {
+    type: [{ skill: String, from: String }],
+    default: [],
+  },
+  swapHistory: {
+    type: [
+      {
+        partner: String,          // other user
+        skillOffered: String,
+        skillReceived: String,
+        status: String,           // 'completed', 'rejected', 'pending'
+        date: Date
+      }
+    ],
+    default: [],
+  },
+
+
 }, { timestamps: true });
 
 export default mongoose.model('User', userSchema);

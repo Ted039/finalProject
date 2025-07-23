@@ -195,8 +195,9 @@ const Dashboard = () => {
         )}
 
         {activeTab === 'Activity' && (
-          <div className="space-y-2 text-sm dark:text-gray-300">
-            {pendingRequests > 0 ? (
+          <div className="space-y-6 text-sm dark:text-gray-300">
+            {/*  Requests */}
+            {pendingRequests > 0 && (
               <div>
                 You have {pendingRequests} pending request{pendingRequests > 1 ? 's' : ''}.{' '}
                 <button
@@ -206,12 +207,48 @@ const Dashboard = () => {
                   View Requests →
                 </button>
               </div>
-            ) : (
-              <p>No new activity right now.</p>
             )}
-            {/* Future: Add endorsements or swap history here */}
+
+            {/* Swap History */}
+            <div>
+              <h3 className="text-md font-semibold mb-2 text-gray-700 dark:text-white">Swap History</h3>
+              {profile.swapHistory?.length ? (
+                <ul className="space-y-3">
+                  {profile.swapHistory.map((swap, i) => (
+                    <li key={i} className="bg-gray-100 dark:bg-gray-700 p-3 rounded shadow">
+                      <p>
+                        Swapped <strong>{swap.skillOffered}</strong> for <strong>{swap.skillReceived}</strong>{' '}
+                        with <span className="text-blue-600">@{swap.partner}</span>
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Status: {swap.status} • {new Date(swap.date).toLocaleDateString()}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-500">No swaps completed yet.</p>
+              )}
+            </div>
+
+            {/*  Endorsements */}
+            <div>
+              <h3 className="text-md font-semibold mb-2 text-gray-700 dark:text-white">Skill Endorsements</h3>
+              {profile.endorsements?.length ? (
+                <ul className="space-y-2">
+                  {profile.endorsements.map((endorsement, i) => (
+                    <li key={i} className="bg-green-100 dark:bg-green-700 p-3 rounded text-gray-700 dark:text-white">
+                      <strong>{endorsement.skill}</strong> endorsed by <span className="text-blue-600">@{endorsement.from}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-500">You haven't received any endorsements yet.</p>
+              )}
+            </div>
           </div>
         )}
+
       </div>
     </MainLayout>
   )
