@@ -128,11 +128,11 @@ const Dashboard = () => {
                 onClick={() => navigate('/requests')}
                 className="underline text-blue-600 hover:text-blue-800"
               >
-                View
+                
               </button>
             </div>
           ) : (
-            <div className="text-sm text-gray-500">No new swap requests.</div>
+            <div className="text-sm text-gray-500"></div>
           )}
         </div>
 

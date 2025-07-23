@@ -1,16 +1,15 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'react-hot-toast'
 import api from '../api/axios'
-import SwapRequestForm from '../components/SwapRequestForm.jsx'
 import { useNavigate } from 'react-router-dom'
-import MemberCard from '../components/MemberCard.jsx'
-
+import UserCard from '../components/UserCard'
 
 const Discover = () => {
   const [users, setUsers] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
   const allCategories = ['Design', 'Tech', 'Communication', 'Fitness', 'Business']
@@ -24,10 +23,13 @@ const Discover = () => {
         })
         setUsers(res.data)
       } catch (err) {
-        console.error('Failed to fetch users:', err)
-        setError('Could not load members. Please try again.')
+        console.error(err)
+        setError('Failed to fetch users.')
+      } finally {
+        setLoading(false)
       }
     }
+
     fetchUsers()
   }, [])
 
@@ -41,95 +43,52 @@ const Discover = () => {
     : filteredUsers
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      {/* Navbar */}
-      <nav className="bg-gray-800 text-white px-6 py-4 flex justify-between items-center shadow">
-        <h1 className="text-xl font-bold"></h1>
-        <div className="space-x-4">
-          <button onClick={() => navigate('/dashboard')} className="hover:underline">Dashboard</button>
-          <button onClick={() => navigate('/discover')} className="hover:underline">Discover</button>
-          <button onClick={() => navigate('/requests')} className="hover:underline">Requests</button>
-          <button onClick={() => navigate('/profile')} className="hover:underline">Profile</button>
-        </div>
-      </nav>
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* NavBar stays the same */}
 
-      {/* Main Content */}
       <div className="max-w-6xl mx-auto px-6 py-10">
-        <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-white">Discover Members</h2>
+        <h2 className="text-3xl font-bold mb-4 text-gray-800 dark:text-white">Discover Members</h2>
 
         {/* Search & Filters */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+        <section className="mb-8 space-y-4 md:space-y-0 md:flex md:items-center md:justify-between">
           <input
-            type="text"
+            type="search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search skills or usernames..."
-            className="flex-1 px-4 py-2 border rounded dark:bg-gray-800 dark:text-white"
+            placeholder="Search by skill or name"
+            className="w-full md:w-1/2 px-4 py-2 border rounded-md dark:bg-gray-800 dark:text-white"
           />
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex flex-wrap gap-2">
             {allCategories.map((cat) => (
               <button
                 key={cat}
-                className={`px-3 py-1 rounded-full ${
-                  selectedCategory === cat ? 'bg-blue-600 text-white' : 'bg-gray-300 dark:bg-gray-700 dark:text-white'
-                }`}
                 onClick={() => setSelectedCategory(selectedCategory === cat ? '' : cat)}
+                className={`px-3 py-1 rounded-full text-sm transition ${
+                  selectedCategory === cat
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 dark:bg-gray-700 dark:text-white'
+                }`}
               >
                 {cat}
               </button>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Error */}
-        {error && <p className="text-red-600 mb-4">{error}</p>}
-
-        {/* User Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categoryFiltered.length > 0 ? (
-            categoryFiltered.map((user) => (
-              <div key={user._id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-5 hover:shadow-lg transition">
-                <div className="flex items-center gap-4 mb-4">
-                    {user.avatar ? (
-                    <img
-                        src={user.avatar}
-                        alt="Avatar"
-                        className="h-16 w-16 rounded-full object-cover"
-                    />
-                    ) : (
-                    <div className="h-16 w-16 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center font-bold text-xl text-gray-800 dark:text-white">
-                        {user.username.slice(0, 2).toUpperCase()}
-                    </div>
-                    )}
-                    <div>
-                    <h3 className="text-lg font-semibold dark:text-white">{user.username}</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                        Skills: {user.skills?.join(', ') || 'None listed'}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                        Categories: {user.categories?.join(', ') || 'Uncategorized'}
-                    </p>
-                    </div>
-                </div>
-
-                {/* 🔁 Swap Form */}
-                <SwapRequestForm
-                    toUserId={user._id}
-                    toUsername={user.username}
-                    onSuccess={() => toast.success('Swap request sent')}
-                />
-
-                {/* DM Button */}
-                <MemberCard receiver={user} />  
-            </div>
-
-            ))
-          ) : (
-            <p className="text-gray-500 dark:text-gray-400">No matching members found.</p>
-          )}
-        </div>
+        {error && <p className="text-red-600 text-sm">{error}</p>}
+        {loading ? (
+          <p className="text-gray-500 dark:text-gray-400">Loading members...</p>
+        ) : categoryFiltered.length === 0 ? (
+          <p className="text-gray-500 dark:text-gray-400">No matching members found.</p>
+        ) : (
+          <section className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {categoryFiltered.map((user) => (
+              <UserCard key={user._id} user={user} />
+            ))}
+          </section>
+        )}
       </div>
-    </div>
+    </main>
   )
 }
 

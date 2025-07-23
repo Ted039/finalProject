@@ -9,6 +9,7 @@ const SwapRequestForm = ({ toUserId, toUsername, onSuccess }) => {
   const [requestedSkill, setRequestedSkill] = useState('')
   const [message, setMessage] = useState('')
   const [date, setDate] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -17,19 +18,15 @@ const SwapRequestForm = ({ toUserId, toUsername, onSuccess }) => {
       return
     }
 
+    setSubmitting(true)
     const token = localStorage.getItem('token')
-    const payload = {
-      toUserId,
-      offeredSkill,
-      requestedSkill,
-      message,
-      date,
-    }
+    const payload = { toUserId, offeredSkill, requestedSkill, message, date }
 
     try {
       await api.post('/swaps/request', payload, {
         headers: { Authorization: `Bearer ${token}` },
       })
+
       toast.success('Swap request sent!')
       setOfferedSkill('')
       setRequestedSkill('')
@@ -38,51 +35,82 @@ const SwapRequestForm = ({ toUserId, toUsername, onSuccess }) => {
       onSuccess?.()
     } catch (err) {
       toast.error('Failed to send request')
-      console.error('Request error:', err.response?.data || err.message)
+      console.error(err)
+    } finally {
+      setSubmitting(false)
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3 mt-4">
-      <h4 className="font-semibold mb-2">Send Swap Request to {toUsername}</h4>
+    <form onSubmit={handleSubmit} className="mt-4 space-y-5 p-4 rounded-lg border bg-white dark:bg-gray-800 dark:border-gray-700 shadow-md">
+      <h4 className="text-lg font-semibold text-gray-800 dark:text-white">
+        Request a Skill Swap with <span className="text-blue-600">{toUsername}</span>
+      </h4>
 
-      <input
-        type="text"
-        placeholder="Skill you're offering"
-        value={offeredSkill}
-        onChange={(e) => setOfferedSkill(e.target.value)}
-        className="w-full px-3 py-2 border rounded"
-      />
+      <div className="space-y-3">
+        <label className="block text-sm text-gray-700 dark:text-white">
+          Skill you're offering<span className="text-red-500 ml-1">*</span>
+          <input
+            type="text"
+            value={offeredSkill}
+            onChange={(e) => setOfferedSkill(e.target.value)}
+            maxLength={50}
+            required
+            className="mt-1 w-full px-3 py-2 border rounded-md dark:bg-gray-900 dark:text-white"
+          />
+        </label>
 
-      <input
-        type="text"
-        placeholder="Skill you want"
-        value={requestedSkill}
-        onChange={(e) => setRequestedSkill(e.target.value)}
-        className="w-full px-3 py-2 border rounded"
-      />
+        <label className="block text-sm text-gray-700 dark:text-white">
+          Skill you want<span className="text-red-500 ml-1">*</span>
+          <input
+            type="text"
+            value={requestedSkill}
+            onChange={(e) => setRequestedSkill(e.target.value)}
+            maxLength={50}
+            required
+            className="mt-1 w-full px-3 py-2 border rounded-md dark:bg-gray-900 dark:text-white"
+          />
+        </label>
 
-      <textarea
-        placeholder="Message"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        className="w-full px-3 py-2 border rounded"
-        rows={3}
-      />
+        <label className="block text-sm text-gray-700 dark:text-white">
+          Message<span className="text-red-500 ml-1">*</span>
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            rows={3}
+            maxLength={250}
+            required
+            className="mt-1 w-full px-3 py-2 border rounded-md dark:bg-gray-900 dark:text-white"
+            placeholder="Tell them why you're interested in this exchange..."
+          />
+        </label>
 
-      <DatePicker
-        selected={date}
-        onChange={(d) => setDate(d)}
-        showTimeSelect
-        timeFormat="HH:mm"
-        timeIntervals={30}
-        dateFormat="MMMM d, yyyy h:mm aa"
-        placeholderText="Select swap date"
-        className="w-full px-3 py-2 border rounded"
-      />
+        <label className="block text-sm text-gray-700 dark:text-white">
+          Proposed Date & Time<span className="text-red-500 ml-1">*</span>
+          <DatePicker
+            selected={date}
+            onChange={(d) => setDate(d)}
+            showTimeSelect
+            timeFormat="HH:mm"
+            timeIntervals={30}
+            dateFormat="MMMM d, yyyy h:mm aa"
+            placeholderText="Choose a date"
+            required
+            className="mt-1 w-full px-3 py-2 border rounded-md dark:bg-gray-900 dark:text-white"
+          />
+        </label>
+      </div>
 
-      <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
-        Send Swap Request
+      <button
+        type="submit"
+        disabled={submitting}
+        className={`w-full py-2 px-4 rounded-md font-medium transition ${
+          submitting
+            ? 'bg-gray-400 cursor-not-allowed'
+            : 'bg-blue-600 hover:bg-blue-700 text-white'
+        }`}
+      >
+        {submitting ? 'Sending...' : 'Send Swap Request'}
       </button>
     </form>
   )
