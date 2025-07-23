@@ -6,8 +6,8 @@ SkillSwap is a real-time web platform designed for creators, freelancers, and le
 
 ##  Deployed Application
 
-- Live App: https://skillswap-x5nj.onrender.com  
-- Video Demo: https://your-demo-video-link.com
+- Live App: https://skillswap-omega-eight.vercel.app/
+
 
 ---
 

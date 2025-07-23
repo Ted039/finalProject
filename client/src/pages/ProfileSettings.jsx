@@ -5,6 +5,7 @@ import api from '../api/axios'
 const ProfileSettings = () => {
   const [form, setForm] = useState({ username: '', email: '' })
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const [avatarPreview, setAvatarPreview] = useState('')
   const [avatarFile, setAvatarFile] = useState(null)
   const [passwords, setPasswords] = useState({
@@ -27,7 +28,8 @@ const ProfileSettings = () => {
           setAvatarPreview(res.data.avatar)
         }
       } catch (err) {
-        console.error('Profile fetch failed:', err)
+        setError('Unable to load profile. Please try again later.')
+        console.error(err)
       } finally {
         setLoading(false)
       }
@@ -50,6 +52,7 @@ const ProfileSettings = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setError('')
     try {
       const token = localStorage.getItem('token')
       const formData = new FormData()
@@ -66,25 +69,26 @@ const ProfileSettings = () => {
         },
       })
 
-      alert('Profile updated!')
+      alert('Profile updated successfully.')
     } catch (err) {
-      console.error('Profile update failed:', err)
-      alert('Failed to update profile')
+      setError(err.response?.data.message || 'Failed to update profile.')
+      console.error(err)
     }
   }
 
   const handlePasswordChange = async (e) => {
     e.preventDefault()
     const { oldPassword, newPassword, confirmPassword } = passwords
+    setError('')
 
     if (!oldPassword || !newPassword || !confirmPassword) {
-      return alert('Please fill out all password fields')
+      return setError('Please fill in all password fields.')
     }
     if (newPassword.length < 6) {
-      return alert('New password must be at least 6 characters')
+      return setError('New password must be at least 6 characters.')
     }
     if (newPassword !== confirmPassword) {
-      return alert('Passwords do not match')
+      return setError('New passwords do not match.')
     }
 
     try {
@@ -92,22 +96,29 @@ const ProfileSettings = () => {
       await api.put('/users/me/password', { oldPassword, newPassword }, {
         headers: { Authorization: `Bearer ${token}` },
       })
-      alert('Password updated!')
+
+      alert('Password updated successfully.')
       setPasswords({ oldPassword: '', newPassword: '', confirmPassword: '' })
     } catch (err) {
-      console.error('Password update failed:', err)
-      alert('Failed to update password')
+      setError(err.response?.data.message || 'Failed to update password.')
+      console.error(err)
     }
   }
 
-  if (loading) return <div className="ml-64 text-center mt-10">Loading profile...</div>
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+        <p className="text-gray-700 dark:text-white">Loading profile...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      {/* Navbar */}
-      <nav className="bg-gray-800 text-white px-6 py-4 flex justify-between items-center shadow">
-        <h1 className="text-xl font-bold"></h1>
-        <div className="space-x-4">
+      {/* Navigation */}
+      <nav className="bg-gray-800 text-white px-6 py-4 shadow flex justify-between">
+        <h1 className="text-xl font-bold">SkillSwap</h1>
+        <div className="space-x-6">
           <button onClick={() => navigate('/dashboard')} className="hover:underline">Dashboard</button>
           <button onClick={() => navigate('/discover')} className="hover:underline">Discover</button>
           <button onClick={() => navigate('/requests')} className="hover:underline">Requests</button>
@@ -116,85 +127,85 @@ const ProfileSettings = () => {
       </nav>
 
       {/* Profile Settings */}
-      <div className="ml-64 max-w-xl mx-auto mt-12 bg-white dark:bg-gray-800 p-6 rounded shadow">
-        <h2 className="text-2xl font-bold mb-6 dark:text-white">Profile Settings</h2>
+      <section className="max-w-2xl mx-auto mt-12 bg-white dark:bg-gray-800 p-6 rounded-lg shadow space-y-8">
+        <h2 className="text-2xl font-bold text-center dark:text-white">Edit Profile</h2>
 
-        {/* Update Username, Email, Avatar */}
+        {error && <p className="text-red-600 text-center text-sm">{error}</p>}
+
+        {/* Profile Update Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label className="block font-semibold dark:text-white">Avatar</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleAvatarChange}
-              className="w-full"
-            />
+          <div>
+            <label className="block text-sm font-medium dark:text-white mb-1">Avatar</label>
+            <input type="file" accept="image/*" onChange={handleAvatarChange} className="w-full" />
             {avatarPreview && (
-              <img
-                src={avatarPreview}
-                alt="Avatar Preview"
-                className="h-24 w-24 rounded-full object-cover mt-2"
-              />
+              <img src={avatarPreview} alt="Avatar Preview" className="mt-3 h-24 w-24 rounded-full object-cover" />
             )}
           </div>
-          <input
-            name="username"
-            value={form.username}
-            onChange={handleChange}
-            className="w-full border px-3 py-2 rounded dark:bg-gray-900 dark:text-white"
-            placeholder="Username"
-          />
-          <input
-            name="email"
-            type="email"
-            value={form.email}
-            onChange={handleChange}
-            className="w-full border px-3 py-2 rounded dark:bg-gray-900 dark:text-white"
-            placeholder="Email"
-          />
+          <div>
+            <label className="block text-sm font-medium dark:text-white mb-1">Username</label>
+            <input
+              type="text"
+              name="username"
+              value={form.username}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded-md dark:bg-gray-900 dark:text-white"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium dark:text-white mb-1">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded-md dark:bg-gray-900 dark:text-white"
+              required
+            />
+          </div>
           <button
             type="submit"
-            className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
+            className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition"
           >
-            Save Changes
+            Save Profile
           </button>
         </form>
 
-        {/* Update Password */}
-        <form onSubmit={handlePasswordChange} className="space-y-4 mt-8 border-t pt-6">
+        {/* Password Update Form */}
+        <form onSubmit={handlePasswordChange} className="space-y-4 border-t pt-6">
           <h3 className="text-lg font-semibold dark:text-white">Change Password</h3>
           <input
             type="password"
-            name="oldPassword"
-            value={passwords.oldPassword}
-            onChange={(e) => setPasswords((prev) => ({ ...prev, oldPassword: e.target.value }))}
-            className="w-full border px-3 py-2 rounded dark:bg-gray-900 dark:text-white"
             placeholder="Current password"
+            value={passwords.oldPassword}
+            onChange={(e) => setPasswords({ ...passwords, oldPassword: e.target.value })}
+            className="w-full px-3 py-2 border rounded-md dark:bg-gray-900 dark:text-white"
+            required
           />
           <input
             type="password"
-            name="newPassword"
-            value={passwords.newPassword}
-            onChange={(e) => setPasswords((prev) => ({ ...prev, newPassword: e.target.value }))}
-            className="w-full border px-3 py-2 rounded dark:bg-gray-900 dark:text-white"
             placeholder="New password"
+            value={passwords.newPassword}
+            onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
+            className="w-full px-3 py-2 border rounded-md dark:bg-gray-900 dark:text-white"
+            required
           />
           <input
             type="password"
-            name="confirmPassword"
-            value={passwords.confirmPassword}
-            onChange={(e) => setPasswords((prev) => ({ ...prev, confirmPassword: e.target.value }))}
-            className="w-full border px-3 py-2 rounded dark:bg-gray-900 dark:text-white"
             placeholder="Confirm new password"
+            value={passwords.confirmPassword}
+            onChange={(e) => setPasswords({ ...passwords, confirmPassword: e.target.value })}
+            className="w-full px-3 py-2 border rounded-md dark:bg-gray-900 dark:text-white"
+            required
           />
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
           >
             Update Password
           </button>
         </form>
-      </div>
+      </section>
     </div>
   )
 }
