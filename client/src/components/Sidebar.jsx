@@ -7,7 +7,7 @@ const Sidebar = () => {
     { path: '/dashboard', label: 'Dashboard' },
     { path: '/discover', label: 'Discover' },
     { path: '/messages', label: 'Messages' },       
-    { path: '/profile', label: 'Profile Settings' },
+    { path: '/profile', label: 'Settings' },
   ];
 
   return (

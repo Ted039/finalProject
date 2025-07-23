@@ -3,25 +3,31 @@ import {
   Routes,
   Route,
   useLocation,
-} from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
-import Sidebar from './components/Sidebar.jsx';
-import ProtectedRoute from './components/ProtectedRoute.jsx';
+} from 'react-router-dom'
+import { Toaster } from 'react-hot-toast'
+import Sidebar from './components/Sidebar.jsx'
+import ProtectedRoute from './components/ProtectedRoute.jsx'
+import MainLayout from './components/MainLayout.jsx'
 
 // Pages
-import Dashboard from './pages/Dashboard.jsx';
-import Discover from './pages/Discover.jsx';
-import Login from './pages/Login.jsx';
-import Messages from './pages/Messages.jsx';
-import ProfileSettings from './pages/ProfileSettings.jsx';
-import Register from './pages/Register.jsx';
-import Requests from './pages/Request.jsx';
-import SwapRequest from './pages/swapRequests.jsx';
-import DirectMessage from './pages/DirectMessage.jsx'; 
+import Dashboard from './pages/Dashboard.jsx'
+import Discover from './pages/Discover.jsx'
+import Login from './pages/Login.jsx'
+import Messages from './pages/Messages.jsx'
+import ProfileSettings from './pages/ProfileSettings.jsx'
+import Register from './pages/Register.jsx'
+import Requests from './pages/Request.jsx'
+import SwapRequest from './pages/swapRequests.jsx'
+import DirectMessage from './pages/DirectMessage.jsx'
 
 const AppLayout = () => {
-  const { pathname } = useLocation();
-  const hideSidebar = ['/', '/login', '/register'].includes(pathname);
+  const { pathname } = useLocation()
+
+const hideSidebarPaths = ['/', '/login', '/register']
+const isAuthPage = hideSidebarPaths.includes(pathname)
+const isSettingsPage = pathname.startsWith('/settings') || pathname === '/profile'
+const hideSidebar = isAuthPage || isSettingsPage
+
 
   return (
     <div className="bg-white text-black dark:bg-gray-900 dark:text-white min-h-screen transition-colors duration-300">
@@ -48,7 +54,9 @@ const AppLayout = () => {
               path="/discover"
               element={
                 <ProtectedRoute>
-                  <Discover />
+                  <MainLayout>
+                    <Discover />
+                  </MainLayout>
                 </ProtectedRoute>
               }
             />
@@ -56,7 +64,7 @@ const AppLayout = () => {
               path="/messages"
               element={
                 <ProtectedRoute>
-                  <Messages />
+                  <MainLayout><Messages /></MainLayout>
                 </ProtectedRoute>
               }
             />
@@ -72,7 +80,9 @@ const AppLayout = () => {
               path="/profile"
               element={
                 <ProtectedRoute>
-                  <ProfileSettings />
+                  <MainLayout>
+                    <ProfileSettings />
+                  </MainLayout>
                 </ProtectedRoute>
               }
             />
@@ -84,19 +94,25 @@ const AppLayout = () => {
                 </ProtectedRoute>
               }
             />
-            {/* 🔧 Optional: Add missing route */}
-            {/* <Route path="/swaps" element={<SwapRequest />} /> */}
+            <Route
+              path="/swaps"
+              element={
+                <ProtectedRoute>
+                  <SwapRequest />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </main>
       </div>
     </div>
-  );
-};
+  )
+}
 
 const App = () => (
   <Router>
     <AppLayout />
   </Router>
-);
+)
 
-export default App;
+export default App

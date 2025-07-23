@@ -2,18 +2,16 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/axios'
 
-const ProfileSettings = () => {
+const sections = ['Profile Info', 'Account & Security', 'Preferences', 'Notifications']
+
+const SettingsDashboard = () => {
+  const [activeSection, setActiveSection] = useState('Profile Info')
   const [form, setForm] = useState({ username: '', email: '' })
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
   const [avatarPreview, setAvatarPreview] = useState('')
   const [avatarFile, setAvatarFile] = useState(null)
-  const [passwords, setPasswords] = useState({
-    oldPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  })
-
+  const [passwords, setPasswords] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -24,23 +22,15 @@ const ProfileSettings = () => {
           headers: { Authorization: `Bearer ${token}` },
         })
         setForm({ username: res.data.username, email: res.data.email })
-        if (res.data.avatar) {
-          setAvatarPreview(res.data.avatar)
-        }
+        if (res.data.avatar) setAvatarPreview(res.data.avatar)
       } catch (err) {
-        setError('Unable to load profile. Please try again later.')
-        console.error(err)
+        setError('Failed to load profile.')
       } finally {
         setLoading(false)
       }
     }
-
     fetchUser()
   }, [])
-
-  const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
-  }
 
   const handleAvatarChange = (e) => {
     const file = e.target.files[0]
@@ -50,164 +40,167 @@ const ProfileSettings = () => {
     }
   }
 
-  const handleSubmit = async (e) => {
+  const handleFormChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value })
+  }
+
+  const handlePasswordChange = (e) => {
+    setPasswords({ ...passwords, [e.target.name]: e.target.value })
+  }
+
+  const updateProfile = async (e) => {
     e.preventDefault()
-    setError('')
+    const formData = new FormData()
+    formData.append('username', form.username)
+    formData.append('email', form.email)
+    if (avatarFile) formData.append('avatar', avatarFile)
+
     try {
       const token = localStorage.getItem('token')
-      const formData = new FormData()
-      formData.append('username', form.username)
-      formData.append('email', form.email)
-      if (avatarFile) {
-        formData.append('avatar', avatarFile)
-      }
-
       await api.put('/users/me/profile', formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
         },
       })
-
-      alert('Profile updated successfully.')
+      alert('Profile updated.')
     } catch (err) {
-      setError(err.response?.data.message || 'Failed to update profile.')
-      console.error(err)
+      alert('Update failed.')
     }
   }
 
-  const handlePasswordChange = async (e) => {
+  const updatePassword = async (e) => {
     e.preventDefault()
     const { oldPassword, newPassword, confirmPassword } = passwords
-    setError('')
-
-    if (!oldPassword || !newPassword || !confirmPassword) {
-      return setError('Please fill in all password fields.')
-    }
-    if (newPassword.length < 6) {
-      return setError('New password must be at least 6 characters.')
-    }
-    if (newPassword !== confirmPassword) {
-      return setError('New passwords do not match.')
-    }
+    if (!oldPassword || !newPassword || !confirmPassword) return alert('Fill all fields.')
+    if (newPassword.length < 6) return alert('Password must be at least 6 characters.')
+    if (newPassword !== confirmPassword) return alert('Passwords do not match.')
 
     try {
       const token = localStorage.getItem('token')
       await api.put('/users/me/password', { oldPassword, newPassword }, {
         headers: { Authorization: `Bearer ${token}` },
       })
-
-      alert('Password updated successfully.')
-      setPasswords({ oldPassword: '', newPassword: '', confirmPassword: '' })
+      alert('Password updated.')
     } catch (err) {
-      setError(err.response?.data.message || 'Failed to update password.')
-      console.error(err)
+      alert('Password update failed.')
     }
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-        <p className="text-gray-700 dark:text-white">Loading profile...</p>
-      </div>
-    )
+    return <div className="text-center mt-12 text-gray-700 dark:text-white">Loading settings...</div>
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      {/* Navigation */}
-      <nav className="bg-gray-800 text-white px-6 py-4 shadow flex justify-between">
-        <h1 className="text-xl font-bold">SkillSwap</h1>
-        <div className="space-x-6">
-          <button onClick={() => navigate('/dashboard')} className="hover:underline">Dashboard</button>
-          <button onClick={() => navigate('/discover')} className="hover:underline">Discover</button>
-          <button onClick={() => navigate('/requests')} className="hover:underline">Requests</button>
-          <button onClick={() => navigate('/profile')} className="hover:underline">Profile</button>
-        </div>
-      </nav>
+    <div className="min-h-screen flex bg-gray-100 dark:bg-gray-900">
+      {/* Sidebar */}
+      <aside className="w-64 bg-white dark:bg-gray-800 p-6 shadow">
+        <h2 className="text-lg font-bold mb-4 dark:text-white">Settings</h2>
+        <ul className="space-y-3">
+          {sections.map((section) => (
+            <li key={section}>
+              <button
+                onClick={() => setActiveSection(section)}
+                className={`w-full text-left px-3 py-2 rounded-md text-sm font-medium ${
+                  activeSection === section
+                    ? 'bg-green-600 text-white'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                }`}
+              >
+                {section}
+              </button>
+              
+            </li>
+          ))}
+        </ul>
+      </aside>
 
-      {/* Profile Settings */}
-      <section className="max-w-2xl mx-auto mt-12 bg-white dark:bg-gray-800 p-6 rounded-lg shadow space-y-8">
-        <h2 className="text-2xl font-bold text-center dark:text-white">Edit Profile</h2>
+      {/* Section Content */}
+      <main className="flex-1 p-8 space-y-8">
+        <h1 className="text-2xl font-bold mb-6 dark:text-white">{activeSection}</h1>
 
-        {error && <p className="text-red-600 text-center text-sm">{error}</p>}
+        {activeSection === 'Profile Info' && (
+          <form onSubmit={updateProfile} className="space-y-4">
+            <div>
+              <label className="block text-sm dark:text-white mb-1">Avatar</label>
+              <input type="file" accept="image/*" onChange={handleAvatarChange}
+                className="block w-full text-sm text-gray-700 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-green-600 file:text-white hover:file:bg-green-700"
+              />
 
-        {/* Profile Update Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium dark:text-white mb-1">Avatar</label>
-            <input type="file" accept="image/*" onChange={handleAvatarChange} className="w-full" />
-            {avatarPreview && (
-              <img src={avatarPreview} alt="Avatar Preview" className="mt-3 h-24 w-24 rounded-full object-cover" />
-            )}
-          </div>
-          <div>
-            <label className="block text-sm font-medium dark:text-white mb-1">Username</label>
+              {avatarPreview && (
+                <img src={avatarPreview} alt="Avatar" className="h-20 w-20 rounded-full mt-3" />
+              )}
+            </div>
             <input
-              type="text"
               name="username"
               value={form.username}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md dark:bg-gray-900 dark:text-white"
-              required
+              onChange={handleFormChange}
+              placeholder="Username"
+              className="w-full px-3 py-2 border rounded dark:bg-gray-800 dark:text-white"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium dark:text-white mb-1">Email</label>
             <input
-              type="email"
               name="email"
               value={form.email}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md dark:bg-gray-900 dark:text-white"
-              required
+              onChange={handleFormChange}
+              placeholder="Email"
+              className="w-full px-3 py-2 border rounded dark:bg-gray-800 dark:text-white"
             />
-          </div>
-          <button
-            type="submit"
-            className="w-full bg-green-600 text-white py-2 rounded-md hover:bg-green-700 transition"
-          >
-            Save Profile
-          </button>
-        </form>
+            <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+              Save Profile
+            </button>
+          </form>
+        )}
 
-        {/* Password Update Form */}
-        <form onSubmit={handlePasswordChange} className="space-y-4 border-t pt-6">
-          <h3 className="text-lg font-semibold dark:text-white">Change Password</h3>
-          <input
-            type="password"
-            placeholder="Current password"
-            value={passwords.oldPassword}
-            onChange={(e) => setPasswords({ ...passwords, oldPassword: e.target.value })}
-            className="w-full px-3 py-2 border rounded-md dark:bg-gray-900 dark:text-white"
-            required
-          />
-          <input
-            type="password"
-            placeholder="New password"
-            value={passwords.newPassword}
-            onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
-            className="w-full px-3 py-2 border rounded-md dark:bg-gray-900 dark:text-white"
-            required
-          />
-          <input
-            type="password"
-            placeholder="Confirm new password"
-            value={passwords.confirmPassword}
-            onChange={(e) => setPasswords({ ...passwords, confirmPassword: e.target.value })}
-            className="w-full px-3 py-2 border rounded-md dark:bg-gray-900 dark:text-white"
-            required
-          />
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition"
-          >
-            Update Password
-          </button>
-        </form>
-      </section>
+        {activeSection === 'Account & Security' && (
+          <form onSubmit={updatePassword} className="space-y-3">
+            <input
+              type="password"
+              name="oldPassword"
+              value={passwords.oldPassword}
+              onChange={handlePasswordChange}
+              placeholder="Current Password"
+              className="w-full px-3 py-2 border rounded dark:bg-gray-800 dark:text-white"
+            />
+            <input
+              type="password"
+              name="newPassword"
+              value={passwords.newPassword}
+              onChange={handlePasswordChange}
+              placeholder="New Password"
+              className="w-full px-3 py-2 border rounded dark:bg-gray-800 dark:text-white"
+            />
+            <input
+              type="password"
+              name="confirmPassword"
+              value={passwords.confirmPassword}
+              onChange={handlePasswordChange}
+              placeholder="Confirm New Password"
+              className="w-full px-3 py-2 border rounded dark:bg-gray-800 dark:text-white"
+            />
+            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+              Update Password
+            </button>
+          </form>
+        )}
+
+        {activeSection === 'Preferences' && (
+          <div className="text-gray-700 dark:text-gray-300">
+            Preferences section coming soon...
+          </div>
+        )}
+
+        {activeSection === 'Notifications' && (
+          <div className="text-gray-700 dark:text-gray-300">
+            Notification settings will be added soon...
+          </div>
+        )}
+
+
+
+        
+      </main>
     </div>
   )
 }
 
-export default ProfileSettings
+export default SettingsDashboard
