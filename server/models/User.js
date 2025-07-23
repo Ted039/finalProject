@@ -26,6 +26,10 @@ const userSchema = new mongoose.Schema({
     default: '',        // blank by default
     trim: true,
   },
+  badges: {
+    type: [String],
+    default: [],
+  },
 }, { timestamps: true });
 
 export default mongoose.model('User', userSchema);

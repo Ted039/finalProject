@@ -1,116 +1,112 @@
-import bcrypt from 'bcryptjs';
-import User from '../models/User.js';
-import { skillCategoryMap } from '../utils/skillCategories.js';
+import bcrypt from 'bcryptjs'
+import User from '../models/User.js'
+import { skillCategoryMap } from '../utils/skillCategories.js'
+import { evaluateAndStoreBadges } from '../utils/evaluateBadges.js'
 
 
 export const getUserProfile = async (req, res) => {
   try {
-    const user = req.user; 
+    const user = await User.findById(req.user._id).lean()
     res.status(200).json({
       _id: user._id,
       username: user.username,
       email: user.email,
       skills: user.skills,
-      avatar: user.avatar || '', // ✅ include avatar
-    });
+      avatar: user.avatar || '',
+      badges: user.badges || [],
+    })
   } catch (error) {
-    res.status(500).json({ message: 'Could not retrieve user profile' });
+    res.status(500).json({ message: 'Could not retrieve user profile' })
   }
-};
+}
 
 export const addSkillToUser = async (req, res) => {
   try {
-    const { skill } = req.body;
-    if (!skill) return res.status(400).json({ message: 'Skill required' });
+    const { skill } = req.body
+    if (!skill) return res.status(400).json({ message: 'Skill required' })
 
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user._id,
-      { $push: { skills: skill } },
-      { new: true }
-    );
+    const user = await User.findById(req.user._id)
+    if (!user.skills.includes(skill)) user.skills.push(skill)
 
-    res.json(updatedUser);
+    const badgeMessages = await evaluateAndStoreBadges(user)
+    await user.save()
+
+    res.json({ ...user.toObject(), badgeMessages })
   } catch (error) {
-    res.status(500).json({ message: 'Failed to update skills' });
+    res.status(500).json({ message: 'Failed to update skills' })
   }
-};
+}
 
 export const removeSkillFromUser = async (req, res) => {
   try {
-    const { skill } = req.body;
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user._id,
-      { $pull: { skills: skill } },
-      { new: true }
-    );
-    res.json(updatedUser);
+    const { skill } = req.body
+    const user = await User.findById(req.user._id)
+    user.skills = user.skills.filter((s) => s !== skill)
+
+    const badgeMessages = await evaluateAndStoreBadges(user)
+    await user.save()
+
+    res.json({ ...user.toObject(), badgeMessages })
   } catch (error) {
-    res.status(500).json({ message: 'Failed to remove skill' });
+    res.status(500).json({ message: 'Failed to remove skill' })
   }
-};
+}
 
 export const updateUserProfile = async (req, res) => {
   try {
-    const { username, email } = req.body;
+    const { username, email } = req.body
+    const user = await User.findById(req.user._id)
 
-    const updatedFields = { username, email };
+    if (username) user.username = username
+    if (email) user.email = email
+    if (req.file) user.avatar = `/uploads/${req.file.filename}`
 
-    // Include avatar if file was uploaded
-    if (req.file) {
-      updatedFields.avatar = `/uploads/${req.file.filename}`;
-    }
+    const badgeMessages = await evaluateAndStoreBadges(user)
+    await user.save()
 
-    const updatedUser = await User.findByIdAndUpdate(
-      req.user._id,
-      updatedFields,
-      { new: true }
-    );
-
-    res.json(updatedUser);
+    res.json({ ...user.toObject(), badgeMessages })
   } catch (err) {
-    console.error('Profile update error:', err);
-    res.status(500).json({ message: 'Failed to update profile' });
+    console.error('Profile update error:', err)
+    res.status(500).json({ message: 'Failed to update profile' })
   }
-};
+}
 
 export const updatePassword = async (req, res) => {
   try {
-    const { oldPassword, newPassword } = req.body;
-    const user = await User.findById(req.user._id);
+    const { oldPassword, newPassword } = req.body
+    const user = await User.findById(req.user._id)
 
     if (!user || !(await bcrypt.compare(oldPassword, user.password))) {
-      return res.status(401).json({ message: 'Old password incorrect' });
+      return res.status(401).json({ message: 'Old password incorrect' })
     }
 
-    user.password = await bcrypt.hash(newPassword, 10);
-    await user.save();
+    user.password = await bcrypt.hash(newPassword, 10)
+    await user.save()
 
-    res.json({ message: 'Password updated successfully' });
+    res.json({ message: 'Password updated successfully' })
   } catch (err) {
-    res.status(500).json({ message: 'Password update failed' });
+    res.status(500).json({ message: 'Password update failed' })
   }
-};
-
+}
 
 export const getAllOtherUsers = async (req, res) => {
   try {
-    const users = await User.find({ _id: { $ne: req.user._id } }).select('username skills avatar');
+    const users = await User.find({ _id: { $ne: req.user._id } }).select('username skills avatar')
 
     const enrichedUsers = users.map((user) => {
-      const categories = new Set();
+      const categories = new Set()
       user.skills.forEach((skill) => {
-        const category = skillCategoryMap[skill.toLowerCase()];
-        if (category) categories.add(category);
-      });
-      return { ...user.toObject(), categories: Array.from(categories) };
-    });
+        const category = skillCategoryMap[skill.toLowerCase()]
+        if (category) categories.add(category)
+      })
+      return { ...user.toObject(), categories: Array.from(categories) }
+    })
 
-    res.json(enrichedUsers);
+    res.json(enrichedUsers)
   } catch (err) {
-    res.status(500).json({ message: 'Failed to retrieve users' });
+    res.status(500).json({ message: 'Failed to retrieve users' })
   }
-};
-
+}
 
 export const getAllUsers = async (req, res) => {
   try {
@@ -120,4 +116,3 @@ export const getAllUsers = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch users' })
   }
 }
-

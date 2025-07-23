@@ -5,6 +5,7 @@ import api from '../api/axios'
 import { AuthContext } from '../context/AuthContext'
 import MainLayout from '../components/MainLayout'
 import SuggestedMatches from '../components/SuggestedMatches'
+import BadgePanel from '../components/BadgePanel'
 
 const Dashboard = () => {
   const { logout } = useContext(AuthContext)
@@ -77,13 +78,13 @@ const Dashboard = () => {
 
   if (loading) return (
     <MainLayout>
-      <div className="text-center mt-10">⏳ Loading your dashboard...</div>
+      <div className="text-center mt-10"> Loading your dashboard...</div>
     </MainLayout>
   )
 
   if (!profile) return (
     <MainLayout>
-      <div className="text-center mt-10 text-red-500">❌ Failed to load profile.</div>
+      <div className="text-center mt-10 text-red-500"> Failed to load profile.</div>
     </MainLayout>
   )
 
@@ -140,31 +141,11 @@ const Dashboard = () => {
             <p>Total Skills: {profile.skills.length}</p>
             <p>Pending Requests: {pendingRequests}</p>
 
-            {/*  Add achievement panel here */}
-            <div className="mt-6">
-              <h3 className="text-md font-semibold mb-3 text-gray-700 dark:text-white">Your Achievements</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {/* Example badges — replace with dynamic ones later */}
-                <div className="bg-yellow-100 dark:bg-yellow-800 p-4 rounded-lg text-center shadow hover:scale-105 transition">
-                  <span className="text-2xl">🧠</span>
-                  <h4 className="font-bold mt-2">Skill Collector</h4>
-                  <p className="text-xs text-gray-500">Added 5+ skills</p>
-                </div>
-                <div className="bg-blue-100 dark:bg-blue-800 p-4 rounded-lg text-center shadow hover:scale-105 transition">
-                  <span className="text-2xl">🔁</span>
-                  <h4 className="font-bold mt-2">Swap Master</h4>
-                  <p className="text-xs text-gray-500">Completed 3 swaps</p>
-                </div>
-                <div className="bg-green-100 dark:bg-green-800 p-4 rounded-lg text-center shadow hover:scale-105 transition">
-                  <span className="text-2xl"></span>
-                  <h4 className="font-bold mt-2">Profile Complete</h4>
-                  <p className="text-xs text-gray-500">Avatar + email + 3 skills</p>
-                </div>
-              </div>
-            </div>
+            {/* Add badge/achievement section here */}
+            <BadgePanel earnedBadges={profile.badges || []} />
+
           </div>
         )}
-
 
         {activeTab === 'Skills' && (
           <>
