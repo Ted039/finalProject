@@ -41,7 +41,7 @@ const SuggestedMatches = ({ skills = [], currentUserId }) => {
     }
 
     try {
-      await api.post('/api/swaps/request', payload, {
+      await api.post('/swaps/request', payload, {
         headers: { Authorization: `Bearer ${token}` },
       })
       setSentRequests((prev) => ({ ...prev, [targetUserId]: true }))
