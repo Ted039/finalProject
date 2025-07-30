@@ -8,6 +8,7 @@ import { Toaster } from 'react-hot-toast'
 import Sidebar from './components/Sidebar.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import MainLayout from './components/MainLayout.jsx'
+import StartedProjects from './components/StartedProject.jsx'
 
 // Pages
 import Dashboard from './pages/Dashboard.jsx'
@@ -74,6 +75,16 @@ const hideSidebar = isAuthPage || isSettingsPage
                 <ProtectedRoute>
                   <MainLayout>
                     <DirectMessage />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/projects"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <StartedProjects />
                   </MainLayout>
                 </ProtectedRoute>
               }
