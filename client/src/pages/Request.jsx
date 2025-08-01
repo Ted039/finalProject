@@ -1,55 +1,84 @@
-import { useEffect, useState } from 'react'
-import { toast } from 'react-hot-toast'
-import api from '../api/axios'
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
+import api from '../api/axios';
 
 function Requests() {
-  const [requests, setRequests] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const token = localStorage.getItem('token')
+  const navigate = useNavigate();
+  const token = localStorage.getItem('token');
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const userId = user?._id;
 
   const fetchRequests = async () => {
+    if (!token) {
+      toast.error('Missing authentication token');
+      return;
+    }
+
     try {
       const res = await api.get('/swaps?status=pending', {
         headers: { Authorization: `Bearer ${token}` },
-      })
-      setRequests(res.data)
-    } catch {
-      toast.error('Error loading requests')
+      });
+      setRequests(res.data);
+    } catch (err) {
+      console.error('Error loading requests:', err);
+      toast.error('Error loading requests');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchRequests()
-  }, [])
+    fetchRequests();
+  }, []);
 
   const handleResponse = async (id, status, req) => {
+    if (!token || !userId) {
+      toast.error('Missing user credentials');
+      return;
+    }
+
     try {
       await api.put(`/swaps/${id}/respond`, { status }, {
         headers: { Authorization: `Bearer ${token}` },
-      })
-      toast.success(`Request ${status}`)
+      });
+      toast.success(`Request ${status}`);
 
-      // Trigger project creation (placeholder logic)
       if (status === 'approved') {
-        await api.post('/projects/start', {
+        const title = `Collab on ${req.offeredSkill}`;
+
+        const projectPayload = {
+          title,
           partnerId: req.fromUser?._id,
           skill: req.offeredSkill,
           swapId: id,
+        };
+
+        const response = await api.post('/projects/start', projectPayload, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        const newProject = response.data;
+        toast.success('Project started');
+
+        await api.post('/notifications/send', {
+          recipientId: req.fromUser?._id,
+          message: `Your swap request has been approved! A project titled "${title}" has just started.`,
         }, {
           headers: { Authorization: `Bearer ${token}` },
-        })
-        toast.success('Project started 🎉')
-      }
+        });
 
-      // Refresh the request list
-      fetchRequests()
-    } catch (err) {
-      toast.error(`Failed to ${status} request`)
+        localStorage.setItem('newProjectStarted', 'true');
+        navigate('/projects'); // Full workspace view
+      }
+    } catch (error) {
+      toast.error('Something went wrong');
+      console.error('Error responding to swap:', error);
     }
-  }
+  };
 
   return (
     <div className="max-w-2xl mx-auto mt-10 p-6 bg-white dark:bg-gray-800 rounded shadow">
@@ -86,7 +115,7 @@ function Requests() {
         </ul>
       )}
     </div>
-  )
+  );
 }
 
-export default Requests
+export default Requests;

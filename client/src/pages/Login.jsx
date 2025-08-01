@@ -8,6 +8,7 @@ const Login = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -30,7 +31,7 @@ const Login = () => {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-green-100">
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-green-100 px-4">
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-md p-8 bg-white shadow-xl rounded-lg space-y-6 animate-fade-in"
@@ -49,20 +50,30 @@ const Login = () => {
             value={form.email}
             onChange={handleChange}
             required
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
+            placeholder="you@example.com"
+            className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 placeholder-gray-400"
           />
         </label>
 
         <label className="block text-sm font-medium text-gray-700">
           Password
-          <input
-            type="password"
-            name="password"
-            value={form.password}
-            onChange={handleChange}
-            required
-            className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500"
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              required
+              placeholder="••••••••"
+              className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 placeholder-gray-400"
+            />
+            <span
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-400 hover:text-green-600"
+            >
+              {showPassword ? '🔒' : '👁️'}
+            </span>
+          </div>
         </label>
 
         {error && (
@@ -78,7 +89,7 @@ const Login = () => {
         </button>
 
         <p className="text-center text-sm text-gray-600">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <a href="/register" className="text-green-700 font-semibold hover:underline">
             Register here
           </a>

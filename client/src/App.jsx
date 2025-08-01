@@ -20,6 +20,7 @@ import Register from './pages/Register.jsx'
 import Requests from './pages/Request.jsx'
 import SwapRequest from './pages/swapRequests.jsx'
 import DirectMessage from './pages/DirectMessage.jsx'
+import ProjectDetails from './pages/ProjectDetails.jsx'
 
 const AppLayout = () => {
   const { pathname } = useLocation()
@@ -57,6 +58,16 @@ const hideSidebar = isAuthPage || isSettingsPage
                 <ProtectedRoute>
                   <MainLayout>
                     <Discover />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/discover"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <ProjectDetails />
                   </MainLayout>
                 </ProtectedRoute>
               }
@@ -115,6 +126,17 @@ const hideSidebar = isAuthPage || isSettingsPage
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/projects/:id"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <ProjectDetails />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+
           </Routes>
         </main>
       </div>

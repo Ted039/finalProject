@@ -9,6 +9,10 @@ import authRoutes from './routes/authRoutes.js'
 import userRoutes from './routes/userRoutes.js'
 import swapRoutes from './routes/swapRoutes.js'
 import skillCategoryRoutes from './routes/skillCategoryRoutes.js'
+import projectRoutes from './routes/projectRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
+
+
 
 
 dotenv.config()
@@ -31,6 +35,9 @@ app.use('/api/users', userRoutes)
 app.use('/api/swaps', swapRoutes)
 app.use('/uploads', express.static('uploads'))
 app.use('/api/skill-categories', skillCategoryRoutes)
+app.use('/api/projects', projectRoutes); 
+app.use('/api/notifications', notificationRoutes);
+
 
 
 app.get('/', (req, res) => {
@@ -98,6 +105,29 @@ io.on('connection', (socket) => {
       io.to(room).emit('receive_dm', { message, sender })
     }
   })
+    // 🔗 Project Collaboration Room Join
+  socket.on('joinProjectRoom', (projectId) => {
+    socket.join(`project_${projectId}`);
+    console.log(`Socket ${socket.id} joined project room: project_${projectId}`);
+  });
+
+  // 🔗 Leave Project Room
+  socket.on('leaveProjectRoom', (projectId) => {
+    socket.leave(`project_${projectId}`);
+    console.log(`Socket ${socket.id} left project room: project_${projectId}`);
+  });
+
+  // 💬 Send Project Message
+  socket.on('sendProjectMessage', ({ projectId, message }) => {
+    const msg = {
+      user: onlineUsers[socket.id]?.username || 'Anonymous',
+      message,
+      timestamp: new Date()
+    };
+    io.to(`project_${projectId}`).emit('newProjectMessage', msg);
+    console.log(`Message sent to project_${projectId}: ${message}`);
+  });
+
 
   //  Typing in private DM
   socket.on('typing_dm', ({ room, username }) => {

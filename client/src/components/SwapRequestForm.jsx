@@ -1,48 +1,57 @@
-import { useState } from 'react'
-import { toast } from 'react-hot-toast'
-import DatePicker from 'react-datepicker'
-import 'react-datepicker/dist/react-datepicker.css'
-import api from '../api/axios'
+import { useState } from 'react';
+import PropTypes from 'prop-types';
+import { toast } from 'react-hot-toast';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import api from '../api/axios';
 
 const SwapRequestForm = ({ toUserId, toUsername, onSuccess }) => {
-  const [offeredSkill, setOfferedSkill] = useState('')
-  const [requestedSkill, setRequestedSkill] = useState('')
-  const [message, setMessage] = useState('')
-  const [date, setDate] = useState(null)
-  const [submitting, setSubmitting] = useState(false)
+  const [offeredSkill, setOfferedSkill] = useState('');
+  const [requestedSkill, setRequestedSkill] = useState('');
+  const [message, setMessage] = useState('');
+  const [date, setDate] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!offeredSkill || !requestedSkill || !message || !date) {
-      toast.error('Please fill out all fields')
-      return
+      toast.error('Please fill out all fields');
+      return;
     }
 
-    setSubmitting(true)
-    const token = localStorage.getItem('token')
-    const payload = { toUserId, offeredSkill, requestedSkill, message, date }
+    setSubmitting(true);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('Authentication token not found');
+      setSubmitting(false);
+      return;
+    }
 
     try {
-      await api.post('/swaps/request', payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-
-      toast.success('Swap request sent!')
-      setOfferedSkill('')
-      setRequestedSkill('')
-      setMessage('')
-      setDate(null)
-      onSuccess?.()
-    } catch (err) {
-      toast.error('Failed to send request')
-      console.error(err)
+      await api.post(
+        '/swaps/request',
+        { toUserId, offeredSkill, requestedSkill, message, date },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Swap request sent!');
+      setOfferedSkill('');
+      setRequestedSkill('');
+      setMessage('');
+      setDate(null);
+      onSuccess?.();
+    } catch (error) {
+      toast.error('Failed to send request');
+      console.error('Swap request error:', error);
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="mt-4 space-y-5 p-4 rounded-lg border bg-white dark:bg-gray-800 dark:border-gray-700 shadow-md">
+    <form
+      onSubmit={handleSubmit}
+      className="mt-4 space-y-5 p-4 rounded-lg border bg-white dark:bg-gray-800 dark:border-gray-700 shadow-md"
+    >
       <h4 className="text-lg font-semibold text-gray-800 dark:text-white">
         Request a Skill Swap with <span className="text-blue-600">{toUsername}</span>
       </h4>
@@ -80,8 +89,8 @@ const SwapRequestForm = ({ toUserId, toUsername, onSuccess }) => {
             rows={3}
             maxLength={250}
             required
-            className="mt-1 w-full px-3 py-2 border rounded-md dark:bg-gray-900 dark:text-white"
             placeholder="Tell them why you're interested in this exchange..."
+            className="mt-1 w-full px-3 py-2 border rounded-md dark:bg-gray-900 dark:text-white"
           />
         </label>
 
@@ -89,7 +98,7 @@ const SwapRequestForm = ({ toUserId, toUsername, onSuccess }) => {
           Proposed Date & Time<span className="text-red-500 ml-1">*</span>
           <DatePicker
             selected={date}
-            onChange={(d) => setDate(d)}
+            onChange={(date) => setDate(date)}
             showTimeSelect
             timeFormat="HH:mm"
             timeIntervals={30}
@@ -113,7 +122,13 @@ const SwapRequestForm = ({ toUserId, toUsername, onSuccess }) => {
         {submitting ? 'Sending...' : 'Send Swap Request'}
       </button>
     </form>
-  )
-}
+  );
+};
 
-export default SwapRequestForm
+SwapRequestForm.propTypes = {
+  toUserId: PropTypes.string.isRequired,
+  toUsername: PropTypes.string.isRequired,
+  onSuccess: PropTypes.func,
+};
+
+export default SwapRequestForm;
